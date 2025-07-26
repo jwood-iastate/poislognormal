@@ -50,7 +50,7 @@
 #' plot(draws4[,5:6], main = "Scrambled (Atanassov)")
 #'
 #' @export
-make_draws <- function(n_draws, n_dim, type, ...) {
+make_draws <- function(n_draws, n_dim, type='scrambled-halton-rand-perm', ...) {
   draws <- switch(
     type,
     `standard-halton` = randtoolbox::halton(n = n_draws, dim = n_dim),

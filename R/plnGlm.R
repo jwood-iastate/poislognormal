@@ -171,7 +171,7 @@ summary.poislogn_fit <- function(object, ...) {
   vcov_log <- tryCatch(solve(-object$fit$hessian), error = function(e) NULL)
   
   if (is.null(vcov_log)) {
-    stop("Could not invert Hessian matrix to calculate standard errors.")
+    warning("Could not invert Hessian matrix to calculate standard errors.")
   }
   
   # Use delta method to get SE for sigma (from log_sigma)

@@ -5,6 +5,7 @@
 # roxygen namespace tags. Modify with care!
 ## usethis namespace: start
 #' @importFrom geeM geem
+#' @import Rcpp
 #' @importFrom maxLik maxLik
 #' @importFrom stats .getXlevels delete.response glm glm.fit model.frame
 #' @importFrom stats model.matrix model.offset model.response model.weights
