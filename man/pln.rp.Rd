@@ -63,7 +63,7 @@ various parameter distributions, and panel data structures.
 
 ## Random Parameters Poisson Lognormal
 data("washington_roads")
-nb1.rp <- pln.rp(Total_crashes ~ - 1 + lnlength + lnaadt,
+pln.rp <- pln.rp(Total_crashes ~ - 1 + lnlength + lnaadt,
                rpar_formula = ~ speed50,
                data = washington_roads,
                ndraws = 100,
@@ -71,5 +71,7 @@ nb1.rp <- pln.rp(Total_crashes ~ - 1 + lnlength + lnaadt,
                rpardists = c(intercept="u", speed50="t"),
                method = "bfgs",
                verbose = TRUE)
+               
+summary(pln.rp)
 }
 }

@@ -37,7 +37,7 @@
 #'
 #' ## Random Parameters Poisson Lognormal
 #' data("washington_roads")
-#' nb1.rp <- pln.rp(Total_crashes ~ - 1 + lnlength + lnaadt,
+#' pln.rp <- pln.rp(Total_crashes ~ - 1 + lnlength + lnaadt,
 #'                rpar_formula = ~ speed50,
 #'                data = washington_roads,
 #'                ndraws = 100,
@@ -45,6 +45,8 @@
 #'                rpardists = c(intercept="u", speed50="t"),
 #'                method = "bfgs",
 #'                verbose = TRUE)
+#'                
+#' summary(pln.rp)
 #'}
 pln.rp <- function(formula, rpar_formula, data, panel = NULL, 
                  rpardists = NULL, ndraws = 1500, scrambled = FALSE,
