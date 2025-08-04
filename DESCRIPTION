@@ -7,15 +7,16 @@ Authors@R: person("Wood", "Jonathan", role = c("aut", "cre"), email = "jwood2@ia
 Description: Functions for the PMF, CDF, Quantile, and Random Number Generation 
     for the Poisson-Lognormal Distribution. Also defines a `poisLogn` family 
     and estimates various Poisson-Lognormal regression models. Integration of
-    the Poisson-Lognormal PMF is accomplished using Gauss-Hermite Quadrature 
-    with 100 nodes/weights using Rcpp for speed and accuracy.
+    the Poisson-Lognormal PMF is accomplished using Halton-Based Pseudo-Random
+    draws (5000 draws, randomly sorted, based on prime number 997).
 License: GPL (>= 2)
 Imports: 
   geeM,
   maxLik,
   hardhat,
   randtoolbox,
-  Rcpp
+  Rcpp,
+  poilog
 Depends: R (>= 2.10)
 LinkingTo: Rcpp
 RoxygenNote: 7.3.2

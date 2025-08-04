@@ -44,13 +44,22 @@ These functions provide density, distribution function, quantile function, and
 random number generation for the Poisson-Lognormal (PLogN) distribution.
 }
 \details{
-The density function is calculated using the C++ function `dpln_rcpp`, which
-uses 100-point Gauss-Hermite quadrature for accurate numerical integration.
+The Poiosson-Lognromal distribution is defined as a Poisson distribution with
+a Lognormal-distributed mean. It is useful for modeling count data that are 
+overdispersed with heavy tails. The mathematical formulation is:
+\deqn{P(y)=\int_{-\infty}^\infty \frac{e^{-e^{log(\mu)+\sigma\epsilon}}\left(e^{log(\mu)+\sigma\epsilon}\right)^y}{y!\sqrt{2\pi}}e^{-\frac{\epsilon^2}{2}}d\epsilon}
 
-The user-facing `mu` parameter represents the mean of the Poisson-Lognormal
-distribution, \eqn{E[Y] = \mu}. This is internally converted to the mean of
-the underlying Lognormal distribution on the log scale (\eqn{\mu_{LN}}) via
-\eqn{\mu_{LN} = \log(\mu) - \sigma^2/2}.
+Where \eqn{\mu} is the mean of the Poisson distribution, \eqn{\sigma} is the
+dispersion parameter of the underlying Lognormal distribution, and \eqn{\epsilon}
+is a standard normal variable. 
+
+The mean of the distribution is given by:
+\deqn{E[Y] = \mu e^{\sigma^2/2}}
+
+The variance is given by:
+\deqn{Var(Y) = E[Y] + (e^{\sigma^2} - 1) E[Y]^2}
+
+The R package `poilog` is used for the underlying Poisson-Lognormal density.
 }
 \examples{
 dpLnorm(c(0, 1, 2), mu = 1.5, sigma = 0.8)

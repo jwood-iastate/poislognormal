@@ -5,7 +5,7 @@
 \alias{poisLogn-package}
 \title{poisLogn: Functions for the Poisson-Lognormal Distribution and associated Poisson-Lognormal Count Regression Estimation}
 \description{
-Functions for the PMF, CDF, Quantile, and Random Number Generation for the Poisson-Lognormal Distribution. Also defines a `poisLogn` family and estimates various Poisson-Lognormal regression models. Integration of the Poisson-Lognormal PMF is accomplished using Gauss-Hermite Quadrature with 100 nodes/weights using Rcpp for speed and accuracy.
+Functions for the PMF, CDF, Quantile, and Random Number Generation for the Poisson-Lognormal Distribution. Also defines a `poisLogn` family and estimates various Poisson-Lognormal regression models. Integration of the Poisson-Lognormal PMF is accomplished using Halton-Based Pseudo-Random draws (5000 draws, randomly sorted, based on prime number 997).
 }
 \author{
 \strong{Maintainer}: Wood Jonathan \email{jwood2@iastate.edu}
