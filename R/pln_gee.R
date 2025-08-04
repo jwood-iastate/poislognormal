@@ -109,7 +109,7 @@ pln.gee <- function(formula, id, data, sigma, corstr = "independence", ...) {
 #' # Fit a model for animal-related crashes, using road length as an exposure offset
 #' # The offset term must be on the log scale.
 #' gee_model_est <- pln.gee.est(
-#'   formula = Animal ~ lnaadt + speed50 + ShouldWidth04 + AADTover10k + offset(lnlength),
+#'   formula = Total_crashes ~ lnaadt + speed50 + ShouldWidth04 + AADTover10k + offset(lnlength),
 #'   id = "ID",
 #'   data = washington_roads,
 #'   corstr = "exchangeable"

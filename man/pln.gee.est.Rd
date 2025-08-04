@@ -58,7 +58,7 @@ washington_roads$AADTover10k <- ifelse(washington_roads$AADT > 10000, 1, 0)
 # Fit a model for animal-related crashes, using road length as an exposure offset
 # The offset term must be on the log scale.
 gee_model_est <- pln.gee.est(
-  formula = Animal ~ lnaadt + speed50 + ShouldWidth04 + AADTover10k + offset(lnlength),
+  formula = Total_crashes ~ lnaadt + speed50 + ShouldWidth04 + AADTover10k + offset(lnlength),
   id = "ID",
   data = washington_roads,
   corstr = "exchangeable"

@@ -57,7 +57,7 @@ washington_roads$AADTover10k <- ifelse(washington_roads$AADT > 10000, 1, 0)
 # Fit a model for animal-related crashes, using road length as an exposure offset
 # The offset term must be on the log scale.
 pln_model_roads <- pln.glm(
-  Animal ~ lnaadt + speed50 + ShouldWidth04 + AADTover10k + offset(lnlength),
+  Total_crashes ~ lnaadt + speed50 + ShouldWidth04 + AADTover10k + offset(lnlength),
   data = washington_roads
 )
 
