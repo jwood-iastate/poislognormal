@@ -59,7 +59,7 @@ dpLnorm <- function(x, mu = 1, sigma = 1, log = FALSE) {
   mu_ln <- log(mu)  # Adjust for the lognormal mean
   #sigma_ln <- sqrt((exp(sigma^2)-1)*exp(2*mu+sigma^2))
   
-  p <- poilog::dpoilog(x, mu_ln, sigma)
+  p <- dpoilog(x, mu_ln, sigma)
   
   if (log){
     return(log(p))
