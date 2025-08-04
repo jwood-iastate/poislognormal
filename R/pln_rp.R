@@ -37,7 +37,7 @@
 #'
 #' ## Random Parameters Poisson Lognormal
 #' data("washington_roads")
-#' nb1.rp <- rpnb(Total_crashes ~ - 1 + lnlength + lnaadt,
+#' nb1.rp <- pln.rp(Total_crashes ~ - 1 + lnlength + lnaadt,
 #'                rpar_formula = ~ speed50,
 #'                data = washington_roads,
 #'                ndraws = 100,
