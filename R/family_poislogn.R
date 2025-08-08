@@ -62,7 +62,8 @@ poisLogn <- function(sigma = 1) {
   
   # Deviance residuals
   # Deviance = 2 * (logLik_saturated - logLik_model)
-  # Saturated log-likelihood for a count model is typically based on the Poisson.
+  # Saturated log-likelihood for a count model is based on mu=y
+  # This need updated to use the correct functions
   dev.resids <- function(y, mu, wt) {
     # The mu parameter for dpln_rcpp is the log-mean of the Lognormal,
     # which is log(E[Y]) - sigma^2 / 2.
