@@ -138,16 +138,16 @@ pln.rp <- function(formula, rpar_formula, data, panel = NULL,
       chol_mat <- diag(0.1, nrow = n_rand)
       chol_vals <- chol_mat[lower.tri(chol_mat, diag = TRUE)]
       chol_names <- paste0("chol.", 1:length(chol_vals))
-      start <- c(start, chol_vals)
+      start <- c(start, chol_vals, 0)
       names(start) <- c(paste0("mean.", all_vars), chol_names, "ln(sigma)")
     } else {
       if(n_rand>1) {
         sd_names <- paste0("sd.", rpar_names)
-        start <- c(start, rep(0.1, n_rand))
+        start <- c(start, rep(0.1, n_rand), 0)
         names(start) <- c(fixed_names, paste0("mean.", rpar_names), sd_names, "ln(sigma)")
       }else{
         sd_names <- paste0("sd.", rpar_names)
-        start <- c(start, 0.1)
+        start <- c(start, 0.1, 0)
         names(start) <- c(fixed_names, paste0("mean.", rpar_names), sd_names, "ln(sigma)")
       }
       
