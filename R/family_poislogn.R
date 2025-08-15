@@ -1,9 +1,9 @@
 #' Family Function for Poisson-Lognormal Distribution
 #'
 #' @description
-#' Creates a `family` object for the Poisson-Lognormal distribution to be used in
-#' model fitting functions like `glm()`. The family uses a log-link and requires a
-#' fixed dispersion parameter `sigma`.
+#' Creates a `family` object for the Poisson-Lognormal distribution to be used 
+#' in model fitting functions like `glm()`. The family uses a log-link and 
+#' requires a fixed dispersion parameter `sigma`.
 #'
 #' @details
 #' The Poisson-Lognormal distribution is a compound distribution that can model
@@ -16,21 +16,16 @@
 #' The family uses a log-link function, where the linear predictor \eqn{\eta}
 #' relates to the mean \eqn{\mu + exp(\sigma^2/2) = E[Y]} as \eqn{\eta = \log(\mu)}.
 #'
-#' The underlying \eqn{\mu_{LN}} parameter of the Lognormal component required by
-#' the internal density function (`dpln_rcpp`) is related to the mean of the
-#' Poisson-Lognormal distribution \eqn{\mu} by:
-#' \deqn{\mu_{LN} = \log(\mu) - \sigma^2/2}
 #'
-#' Since `glm` can only estimate one dispersion parameter (typically \eqn{\phi} in
-#' \eqn{Var(Y) = \phi V(\mu)}), the Lognormal dispersion parameter `sigma` must be
-#' provided as a fixed value to this family function. To estimate `sigma`, one
-#' might fit the model over a range of `sigma` values and select the one that
-#' maximizes the log-likelihood or minimizes AIC.
+#' Since `glm` can only estimate one dispersion parameter (typically \eqn{\phi} 
+#' in \eqn{Var(Y) = \phi V(\mu)}), the Lognormal dispersion parameter `sigma` 
+#' must be provided as a fixed value to this family function. To estimate 
+#' `sigma`, one might fit the model over a range of `sigma` values and select 
+#' the one that maximizes the log-likelihood or minimizes AIC.
 #'
 #' @param sigma A numeric scalar specifying the fixed dispersion parameter
 #'   (\eqn{\sigma > 0}) of the underlying Lognormal distribution.
 #'
-#' @return An object of class `family` for use with functions like `glm`.
 #'
 #' @export
 #' @importFrom stats dpois make.link
@@ -61,24 +56,21 @@ poisLogn <- function(sigma = 1) {
   mu.eta <- link_info$mu.eta
   
   # Deviance residuals
-  # Deviance = 2 * (logLik_saturated - logLik_model)
+  # Deviance =  sign(y-mu) * sqrt(2(logLik_saturated - logLik_model))
   # Saturated log-likelihood for a count model is based on mu=y
-  # This need updated to use the correct functions
   dev.resids <- function(y, mu, wt) {
-    # The mu parameter for dpln_rcpp is the log-mean of the Lognormal,
-    # which is log(E[Y]) - sigma^2 / 2.
-    mu_ln <- log(mu) - sigma2 / 2
+    
+    muy <- ifelse(y==0, 1e-10, y)
     
     # Calculate the log-likelihood for the fitted model
-    ll_model <- dpln_rcpp(y, mu = mu_ln, sigma = sigma, log_p = TRUE)
+    ll_model <- dpLnorm(y, mu, sigma, log = TRUE)
     
     # Calculate the log-likelihood for the saturated model (where mu = y)
     # This uses the Poisson(y) as the saturated model, a standard choice.
-    ll_saturated <- stats::dpois(y, lambda = y, log = TRUE)
+    ll_saturated <- dpLnorm(y, muy, sigma, log = TRUE)
     
-    # Deviance is 2 * (ll_saturated - ll_model)
-    # The sign of the result is taken from (y - mu)
-    dev <- 2 * wt * (ll_saturated - ll_model)
+    # Deviance 
+    dev <- 2 * wt * (max(ll_saturated - ll_model,1e-10))
     ifelse(y > mu, sqrt(dev), -sqrt(dev))
   }
   
@@ -90,7 +82,7 @@ poisLogn <- function(sigma = 1) {
     # The log-likelihood can be calculated from the deviance.
     # dev = 2 * (ll_saturated - ll_model) => ll_model = ll_saturated - dev/2
     mu_ln <- log(mu) - sigma2 / 2
-    ll_model <- sum(dpln_rcpp(y, mu = mu_ln, sigma = sigma, log_p = TRUE) * wt)
+    ll_model <- sum(dpLnorm(y, mu, sigma, log = TRUE) * wt)
     
     # Add 1 to the rank (p) for the dispersion parameter sigma,
     # which is standard practice for AIC comparison with other over-dispersed

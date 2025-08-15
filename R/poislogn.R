@@ -51,7 +51,7 @@ NULL
 
 #' @rdname PoissonLognormal
 #' @export
-dpLnorm <- function(x, mu = 1, sigma = 1, log = FALSE) {
+dpLnorm <- Vectorize(function(x, mu = 1, sigma = 1, log = FALSE) {
   if (any(mu <= 0) || any(sigma <= 0)) {
     stop("Parameters `mu` and `sigma` must be positive.")
   }
@@ -59,14 +59,14 @@ dpLnorm <- function(x, mu = 1, sigma = 1, log = FALSE) {
   mu_ln <- log(mu)  # Adjust for the lognormal mean
   #sigma_ln <- sqrt((exp(sigma^2)-1)*exp(2*mu+sigma^2))
   
-  p <- dpoilog(x, mu_ln, sigma)
+  p <- poilog::dpoilog(x, mu_ln, sigma)
   
   if (log){
     return(log(p))
   }else{
     return(p)
   }
-}
+})
 
 #' @rdname PoissonLognormal
 #' @export

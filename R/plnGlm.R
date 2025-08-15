@@ -5,10 +5,10 @@
 #' estimation via the `maxLik` package.
 #'
 #' @details
-#' This function directly optimizes the Poisson-Lognormal log-likelihood function
-#' to estimate both the regression coefficients (betas) and the dispersion
-#' parameter (`sigma`) simultaneously. This provides a direct estimate and
-#' standard error for `sigma`.
+#' This function directly optimizes the Poisson-Lognormal log-likelihood 
+#' function to estimate both the regression coefficients (betas) and the 
+#' dispersion parameter (`sigma`) simultaneously. This provides a direct 
+#' estimate and standard error for `sigma`.
 #'
 #' The `sigma` parameter is estimated on the log scale (`log(sigma)`) to ensure
 #' it remains positive during optimization. The returned estimate and standard
@@ -16,11 +16,14 @@
 #'
 #' @param formula A formula specifying the model.
 #' @param data A data frame containing the variables in the model.
-#' @param offset An optional character string specifying an offset variable in `data`.
-#' @param weights An optional character string specifying a weights variable in `data`.
-#' @param method A character string specifying the optimization method for `maxLik`.
-#'   See `?maxLik::maxLik` for options.
-#' @param verbose A logical value. If `TRUE`, detailed optimization output is printed.
+#' @param offset An optional character string specifying an offset variable in 
+#'                `data`.
+#' @param weights An optional character string specifying a weights variable in 
+#'                `data`.
+#' @param method A character string specifying the optimization method for 
+#'              `maxLik`. See `?maxLik::maxLik` for options.
+#' @param verbose A logical value. If `TRUE`, detailed optimization output is 
+#'                printed.
 #' @param ... Additional arguments passed to `maxLik::maxLik` (e.g., `iterlim`).
 #'
 #' @return An object of class `poislogn_fit`.
@@ -33,13 +36,10 @@
 #' ## --- Example with washington_roads dataset ---
 #' data(washington_roads)
 #'
-#' # Create a binary indicator for high AADT
-#' washington_roads$AADTover10k <- ifelse(washington_roads$AADT > 10000, 1, 0)
-#'
-#' # Fit a model for animal-related crashes, using road length as an exposure offset
+#' # Fit a model for total crashes
 #' # The offset term must be on the log scale.
 #' pln_model_roads <- pln.glm(
-#'   Total_crashes ~ lnaadt + speed50 + ShouldWidth04 + AADTover10k + offset(lnlength),
+#'   Total_crashes ~ lnaadt  + lnlength,
 #'   data = washington_roads
 #' )
 #'
@@ -49,7 +49,7 @@
 #' predict(pln_model_roads, type = "response", newdata = washington_roads)
 #' 
 pln.glm <- function(formula, data, offset = NULL, weights = NULL,
-                    method = "BFGS", verbose = FALSE, ...) {
+                    method = "NM", verbose = FALSE, ...) {
   
   # --- 1. Data Preparation ---
   cl <- match.call()
@@ -77,20 +77,20 @@ pln.glm <- function(formula, data, offset = NULL, weights = NULL,
     log_sigma <- params[n_betas + 1]
     sigma <- exp(log_sigma)
     
-    # Calculate mu_ln for the underlying Lognormal distribution
+    # Calculate mu for the underlying Lognormal distribution
     eta <- as.vector(X %*% betas + off)
-    mu_y <- exp(eta)
-    mu_ln <- log(mu_y) - sigma^2 / 2
+    eta <- ifelse(is.null(eta),1e-10, eta)
+    mu<- exp(eta)
+
     
-    # Calculate the log-likelihood for each observation using the C++ function
-    log_lik_vec <- dpln_rcpp(y, mu = mu_ln, sigma = sigma, log_p = TRUE)
+    # Calculate the log-likelihood for each observation
+    log_lik_vec <- dpLnorm(y, mu, sigma, log = TRUE)
     
     # Return the weighted sum
-    sum(wts * log_lik_vec)
+    return(wts * log_lik_vec)
   }
   
   # --- 3. Get Starting Values ---
-  message("Fitting initial Poisson model for starting values...")
   initial_fit <- stats::glm.fit(
     x = X, y = y, family = stats::poisson(),
     weights = wts, offset = off
@@ -99,11 +99,10 @@ pln.glm <- function(formula, data, offset = NULL, weights = NULL,
   start_log_sigma <- 0 # Corresponds to sigma = 1
   
   start_params <- c(start_betas, start_log_sigma)
-  param_names <- c(colnames(X), "log_sigma")
+  param_names <- c(colnames(X), "ln(sigma)")
   names(start_params) <- param_names
   
   # --- 4. Perform Maximum Likelihood Estimation ---
-  message("Optimizing Poisson-Lognormal log-likelihood...")
   
   # Set up control list for maxLik
   control_list <- list(...)
@@ -117,8 +116,6 @@ pln.glm <- function(formula, data, offset = NULL, weights = NULL,
     method = method,
     control = control_list
   )
-  
-  message("Estimation complete.")
   
   # --- 5. Structure and Return the Output ---
   final_params <- fit$estimate
@@ -168,33 +165,22 @@ print.poislogn_fit <- function(x, ...) {
 summary.poislogn_fit <- function(object, ...) {
   # Get parameter estimates and vcov from maxLik object
   est <- object$fit$estimate
-  vcov_log <- tryCatch(solve(-object$fit$hessian), error = function(e) NULL)
+  vcov_log <- -object$fit$hessian
   
   if (is.null(vcov_log)) {
     warning("Could not invert Hessian matrix to calculate standard errors.")
   }
   
-  # Use delta method to get SE for sigma (from log_sigma)
-  # Var(f(x)) approx (f'(x))^2 * Var(x)
-  # f(log_sigma) = exp(log_sigma) = sigma. f' = exp(log_sigma) = sigma
-  se_log_sigma <- sqrt(diag(vcov_log)[length(est)])
-  sigma_val <- exp(est[length(est)])
-  se_sigma <- sigma_val * se_log_sigma
-  
   # Combine SEs
-  se <- sqrt(diag(vcov_log))
-  se[length(se)] <- se_sigma
+  se <- sqrt(1/diag(vcov_log))
   
-  # Combine estimates
-  estimates <- c(object$coefficients, object$sigma)
-  names(se) <- names(estimates)
   
   # Calculate z-values and p-values
-  z_val <- estimates / se
+  z_val <- est / se
   p_val <- 2 * stats::pnorm(abs(z_val), lower.tail = FALSE)
   
   coef_table <- cbind(
-    Estimate = estimates,
+    Estimate = est,
     `Std. Error` = se,
     `z value` = z_val,
     `Pr(>|z|)` = p_val

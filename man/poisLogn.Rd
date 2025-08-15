@@ -10,13 +10,10 @@ poisLogn(sigma = 1)
 \item{sigma}{A numeric scalar specifying the fixed dispersion parameter
 (\eqn{\sigma > 0}) of the underlying Lognormal distribution.}
 }
-\value{
-An object of class `family` for use with functions like `glm`.
-}
 \description{
-Creates a `family` object for the Poisson-Lognormal distribution to be used in
-model fitting functions like `glm()`. The family uses a log-link and requires a
-fixed dispersion parameter `sigma`.
+Creates a `family` object for the Poisson-Lognormal distribution to be used 
+in model fitting functions like `glm()`. The family uses a log-link and 
+requires a fixed dispersion parameter `sigma`.
 }
 \details{
 The Poisson-Lognormal distribution is a compound distribution that can model
@@ -29,14 +26,10 @@ standard Poisson, and the variance converges to the mean.
 The family uses a log-link function, where the linear predictor \eqn{\eta}
 relates to the mean \eqn{\mu + exp(\sigma^2/2) = E[Y]} as \eqn{\eta = \log(\mu)}.
 
-The underlying \eqn{\mu_{LN}} parameter of the Lognormal component required by
-the internal density function (`dpln_rcpp`) is related to the mean of the
-Poisson-Lognormal distribution \eqn{\mu} by:
-\deqn{\mu_{LN} = \log(\mu) - \sigma^2/2}
 
-Since `glm` can only estimate one dispersion parameter (typically \eqn{\phi} in
-\eqn{Var(Y) = \phi V(\mu)}), the Lognormal dispersion parameter `sigma` must be
-provided as a fixed value to this family function. To estimate `sigma`, one
-might fit the model over a range of `sigma` values and select the one that
-maximizes the log-likelihood or minimizes AIC.
+Since `glm` can only estimate one dispersion parameter (typically \eqn{\phi} 
+in \eqn{Var(Y) = \phi V(\mu)}), the Lognormal dispersion parameter `sigma` 
+must be provided as a fixed value to this family function. To estimate 
+`sigma`, one might fit the model over a range of `sigma` values and select 
+the one that maximizes the log-likelihood or minimizes AIC.
 }

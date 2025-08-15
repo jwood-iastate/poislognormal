@@ -68,8 +68,8 @@ pln.rp <- pln.rp(Total_crashes ~ - 1 + lnlength + lnaadt,
                data = washington_roads,
                ndraws = 100,
                correlated = FALSE,
-               rpardists = c(intercept="u", speed50="t"),
-               method = "bfgs",
+               rpardists = c(intercept="n", speed50="n"),
+               method = "NM",
                verbose = TRUE)
                
 summary(pln.rp)

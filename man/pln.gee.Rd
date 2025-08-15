@@ -38,3 +38,24 @@ The dispersion parameter `sigma` is **not** estimated by this function.
 It must be provided as a fixed, known value. For iterative estimation of
 sigma, see `pln.gee.est`.
 }
+\note{
+Using `pln.gee` requires specifying the value of `sigma`.
+}
+\examples{
+## --- Example with washington_roads dataset ---
+data(washington_roads)
+# Create a binary indicator for high AADT
+washington_roads$AADTover10k <- ifelse(washington_roads$AADT > 10000, 1, 0)
+
+# Fit a model for Total crashes
+# Note: We now pass the ID column directly, which is best practice.
+total_crash_model <- pln.gee(Total_crashes ~ lnaadt + speed50 +
+ ShouldWidth04 + AADTover10k + lnlength,
+  sigma = 0.5,
+  id = ID, 
+  data = washington_roads
+  )
+
+summary(total_crash_model)
+
+}

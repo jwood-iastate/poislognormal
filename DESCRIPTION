@@ -9,22 +9,19 @@ Description: Functions for the PMF, CDF, Quantile, and Random Number Generation
     and estimates various Poisson-Lognormal regression models. Integration of
     the Poisson-Lognormal PMF is accomplished using Halton-Based Pseudo-Random
     draws (5000 draws, randomly sorted, based on prime number 997).
-License: GPL (>= 2)
+License: MIT + file LICENSE
 Imports: 
   geeM,
   maxLik,
   randtoolbox,
-  Rcpp,
   poilog,
   MASS,
   modelr
 Depends: R (>= 2.10)
 LazyData: TRUE
-LinkingTo: Rcpp
 RoxygenNote: 7.3.2
 Encoding: UTF-8
 Collate: 
-    'RcppExports.R'
     'data.R'
     'family_poislogn.R'
     'make_halton.R'

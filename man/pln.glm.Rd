@@ -9,7 +9,7 @@ pln.glm(
   data,
   offset = NULL,
   weights = NULL,
-  method = "BFGS",
+  method = "NM",
   verbose = FALSE,
   ...
 )
@@ -19,14 +19,17 @@ pln.glm(
 
 \item{data}{A data frame containing the variables in the model.}
 
-\item{offset}{An optional character string specifying an offset variable in `data`.}
+\item{offset}{An optional character string specifying an offset variable in 
+`data`.}
 
-\item{weights}{An optional character string specifying a weights variable in `data`.}
+\item{weights}{An optional character string specifying a weights variable in 
+`data`.}
 
-\item{method}{A character string specifying the optimization method for `maxLik`.
-See `?maxLik::maxLik` for options.}
+\item{method}{A character string specifying the optimization method for 
+`maxLik`. See `?maxLik::maxLik` for options.}
 
-\item{verbose}{A logical value. If `TRUE`, detailed optimization output is printed.}
+\item{verbose}{A logical value. If `TRUE`, detailed optimization output is 
+printed.}
 
 \item{...}{Additional arguments passed to `maxLik::maxLik` (e.g., `iterlim`).}
 }
@@ -38,10 +41,10 @@ Fits a Poisson-Lognormal regression model using direct maximum likelihood
 estimation via the `maxLik` package.
 }
 \details{
-This function directly optimizes the Poisson-Lognormal log-likelihood function
-to estimate both the regression coefficients (betas) and the dispersion
-parameter (`sigma`) simultaneously. This provides a direct estimate and
-standard error for `sigma`.
+This function directly optimizes the Poisson-Lognormal log-likelihood 
+function to estimate both the regression coefficients (betas) and the 
+dispersion parameter (`sigma`) simultaneously. This provides a direct 
+estimate and standard error for `sigma`.
 
 The `sigma` parameter is estimated on the log scale (`log(sigma)`) to ensure
 it remains positive during optimization. The returned estimate and standard
@@ -51,13 +54,10 @@ error are transformed back to the original scale.
 ## --- Example with washington_roads dataset ---
 data(washington_roads)
 
-# Create a binary indicator for high AADT
-washington_roads$AADTover10k <- ifelse(washington_roads$AADT > 10000, 1, 0)
-
-# Fit a model for animal-related crashes, using road length as an exposure offset
+# Fit a model for total crashes
 # The offset term must be on the log scale.
 pln_model_roads <- pln.glm(
-  Total_crashes ~ lnaadt + speed50 + ShouldWidth04 + AADTover10k + offset(lnlength),
+  Total_crashes ~ lnaadt  + lnlength,
   data = washington_roads
 )
 

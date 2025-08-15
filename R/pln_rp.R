@@ -42,16 +42,16 @@
 #'                data = washington_roads,
 #'                ndraws = 100,
 #'                correlated = FALSE,
-#'                rpardists = c(intercept="u", speed50="t"),
-#'                method = "bfgs",
+#'                rpardists = c(intercept="n", speed50="n"),
+#'                method = "NM",
 #'                verbose = TRUE)
 #'                
 #' summary(pln.rp)
 #'}
 pln.rp <- function(formula, rpar_formula, data, panel = NULL, 
-                 rpardists = NULL, ndraws = 1500, scrambled = FALSE,
-                 correlated = FALSE, method = 'BHHH', max.iters = 1000,
-                 start.vals = NULL, verbose = FALSE) {
+                   rpardists = NULL, ndraws = 1500, scrambled = FALSE,
+                   correlated = FALSE, method = 'BHHH', max.iters = 1000,
+                   start.vals = NULL, verbose = FALSE) {
   
   if (verbose) {
     print.level <- 2
@@ -131,17 +131,26 @@ pln.rp <- function(formula, rpar_formula, data, panel = NULL,
     common_coefs <- intersect(names(start), names(start_betas))
     start[common_coefs] <- start_betas[common_coefs]
     
+    n_rand <-length(rpar_names)
+    
     # Define parameter names based on correlation status
     if (correlated) {
-      chol_mat <- diag(0.1, nrow = length(rpar_names))
+      chol_mat <- diag(0.1, nrow = n_rand)
       chol_vals <- chol_mat[lower.tri(chol_mat, diag = TRUE)]
       chol_names <- paste0("chol.", 1:length(chol_vals))
       start <- c(start, chol_vals)
-      names(start) <- c(paste0("mean.", all_vars), chol_names)
+      names(start) <- c(paste0("mean.", all_vars), chol_names, "ln(sigma)")
     } else {
-      sd_names <- paste0("sd.", rpar_names)
-      start <- c(start, rep(0.1, length(rpar_names)))
-      names(start) <- c(paste0("mean.", all_vars), sd_names)
+      if(n_rand>1) {
+        sd_names <- paste0("sd.", rpar_names)
+        start <- c(start, rep(0.1, n_rand))
+        names(start) <- c(fixed_names, paste0("mean.", rpar_names), sd_names, "ln(sigma)")
+      }else{
+        sd_names <- paste0("sd.", rpar_names)
+        start <- c(start, 0.1)
+        names(start) <- c(fixed_names, paste0("mean.", rpar_names), sd_names, "ln(sigma)")
+      }
+      
     }
     
     # Add dispersion and P parameters
@@ -157,10 +166,10 @@ pln.rp <- function(formula, rpar_formula, data, panel = NULL,
     n_fixed <- ncol(X_fixed)
     n_rand <- ncol(X_rand)
     
-    betas_fixed <- params[grep("^mean\\.", names(params))][1:n_fixed]
-    betas_rand_mean <- params[grep("^mean\\.", names(params))][(n_fixed+1):(n_fixed+n_rand)]
+    betas_fixed <- params[1:n_fixed]
+    betas_rand_mean <- params[(n_fixed+1):(n_fixed+n_rand)]
     
-    sigma <- exp(params["ln_sigma"])
+    sigma <- exp(params["ln(sigma)"])
     
     mu_fixed <- as.vector(exp(X_fixed %*% betas_fixed+sigma^2/2))
     
@@ -173,14 +182,26 @@ pln.rp <- function(formula, rpar_formula, data, panel = NULL,
       draws <- (qnorm(halton_draws) %*% t(chol_mat)) + matrix(betas_rand_mean, nrow = ndraws, ncol = n_rand, byrow = TRUE)
     } else {
       rand_sds <- abs(params[grep("^sd\\.", names(params))])
-      for (i in 1:n_rand) {
-        draws[, i] <- switch(rpardists[i],
-                             "n"  = qnorm(halton_draws[, i], mean = betas_rand_mean[i], sd = rand_sds[i]),
-                             "ln" = qlnorm(halton_draws[, i], meanlog = betas_rand_mean[i], sdlog = rand_sds[i]),
-                             "t"  = qtri(halton_draws[, i], lower = betas_rand_mean[i] - rand_sds[i], upper = betas_rand_mean[i] + rand_sds[i], mode=betas_rand_mean[i]),
-                             "u"  = qunif(halton_draws[, i], min = betas_rand_mean[i] - rand_sds[i], max = betas_rand_mean[i] + rand_sds[i]),
-                             "g"  = qgamma(halton_draws[, i], shape = betas_rand_mean[i]^2 / rand_sds[i]^2, rate = betas_rand_mean[i] / rand_sds[i]^2)
+      if (n_rand==1){
+        draws <- switch(rpardists,
+                        "n"  = qnorm(halton_draws, mean = betas_rand_mean, sd = rand_sds),
+                        "ln" = qlnorm(halton_draws, meanlog = betas_rand_mean, sdlog = rand_sds),
+                        "t"  = qtri(halton_draws, lower = betas_rand_mean - rand_sds, upper = betas_rand_mean + rand_sds, mode=betas_rand_mean),
+                        "u"  = qunif(halton_draws, min = betas_rand_mean - rand_sds, max = betas_rand_mean + rand_sds),
+                        "g"  = qgamma(halton_draws, shape = betas_rand_mean^2 / rand_sds^2, rate = betas_rand_mean / rand_sds^2)
         )
+      } else{
+        for (i in 1:n_rand) {
+          draws[, i] <- switch(rpardists[i],
+                               "n"  = qnorm(halton_draws[, i], mean = betas_rand_mean[i], sd = rand_sds[i]),
+                               "ln" = qlnorm(halton_draws[, i], meanlog = betas_rand_mean[i], sdlog = rand_sds[i]),
+                               "t"  = qtri(halton_draws[, i], lower = betas_rand_mean[i] - rand_sds[i], upper = betas_rand_mean[i] + rand_sds[i], mode=betas_rand_mean[i]),
+                               "u"  = qunif(halton_draws[, i], min = betas_rand_mean[i] - rand_sds[i], max = betas_rand_mean[i] + rand_sds[i]),
+                               "g"  = qgamma(halton_draws[, i], shape = betas_rand_mean[i]^2 / rand_sds[i]^2, rate = betas_rand_mean[i] / rand_sds[i]^2)
+          )
+        }
+        
+        
       }
     }
     
@@ -188,7 +209,7 @@ pln.rp <- function(formula, rpar_formula, data, panel = NULL,
     xb_rand <- X_rand %*% t(draws)
     mu_sim <- mu_fixed * exp(xb_rand)
     mu_sim[mu_sim <= 0] <- 1e-50
-
+    
     
     # Probability for each observation and each draw
     prob_mat <- dpLnorm(y, mu = mu_sim, sigma=sigma)
